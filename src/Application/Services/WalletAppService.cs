@@ -1,22 +1,21 @@
 using Application.Dtos.Requests;
 using Application.Dtos.Responses;
 using Application.Interfaces;
-using CrossCutting;
 using CrossCutting.Auth.Interfaces;
+using CrossCutting.Interfaces.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class WalletAppService(AppDbContext appDbContext, IJwtProvider jwtProvider) : IWalletAppService
+public class WalletAppService(IWalletRepository walletRepository, IJwtProvider jwtProvider) : IWalletAppService
 {
     public async Task<IResult> GetBalance()
     {
         var userId = jwtProvider.GetUserId();
 
         if (userId == Guid.Empty) Results.Problem("User not authenticated");
-        
-        var wallet = await appDbContext.Wallets.FirstOrDefaultAsync(e => e.UserId == userId);
+
+        var wallet = await walletRepository.GetByUserId(userId);
         
         if (wallet is null) return Results.Problem("Wallet not found");
 
@@ -29,7 +28,7 @@ public class WalletAppService(AppDbContext appDbContext, IJwtProvider jwtProvide
 
         if (userId == Guid.Empty) return Results.Problem("User not authenticated");
         
-        var wallet = await appDbContext.Wallets.FirstOrDefaultAsync(e => e.UserId == userId);
+        var wallet = await walletRepository.GetByUserId(userId);
         
         if (wallet is null) return Results.Problem("Wallet not found");
 
@@ -37,8 +36,7 @@ public class WalletAppService(AppDbContext appDbContext, IJwtProvider jwtProvide
         
         wallet.Deposit(walletDepositRequest.Amount);
         
-        appDbContext.Wallets.Update(wallet);
-        await appDbContext.SaveChangesAsync();
+        await walletRepository.Update(wallet);
         
         return Results.Ok(new WalletDepositResponse { OldBalance = oldBalance, NewBalance = wallet.Balance });
     }

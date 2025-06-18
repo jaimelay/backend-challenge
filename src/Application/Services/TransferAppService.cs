@@ -3,14 +3,14 @@ using Application.Dtos.Responses;
 using Application.Interfaces;
 using CrossCutting;
 using CrossCutting.Auth.Interfaces;
+using CrossCutting.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class TransferAppService(AppDbContext appDbContext, IJwtProvider jwtProvider) : ITransferAppService
+public class TransferAppService(AppDbContext appDbContext, IWalletRepository walletRepository, IJwtProvider jwtProvider) : ITransferAppService
 {
     public async Task<IResult> CreateTransfer(CreateTransferRequest request)
     {
@@ -20,7 +20,7 @@ public class TransferAppService(AppDbContext appDbContext, IJwtProvider jwtProvi
         
         if (userId == request.ToUserId) return Results.Problem("It's not possible to do the transfer to the same account.");
         
-        var wallets = await appDbContext.Wallets.Where(e => e.UserId == userId || e.UserId == request.ToUserId).ToListAsync();
+        var wallets = await walletRepository.GetByUserIds([userId, request.ToUserId]);
         
         if (wallets.Count == 0 || wallets is null) return Results.Problem("No wallets found");
         
@@ -35,7 +35,8 @@ public class TransferAppService(AppDbContext appDbContext, IJwtProvider jwtProvi
 
         var newTransfer = Transfer.Create(walletFromUser.Id, walletToUser.Id, request.Amount);
         
-        appDbContext.Wallets.UpdateRange([ walletFromUser, walletToUser ]);
+        await walletRepository.UpdateRange([ walletFromUser, walletToUser ]);
+        
         await appDbContext.Transfers.AddAsync(newTransfer);
         await appDbContext.SaveChangesAsync();
 
@@ -48,7 +49,7 @@ public class TransferAppService(AppDbContext appDbContext, IJwtProvider jwtProvi
 
         if (userId == Guid.Empty) return Results.Problem("User not authenticated");
 
-        var wallet = await appDbContext.Wallets.FirstOrDefaultAsync(e => e.UserId == userId);
+        var wallet = await walletRepository.GetByUserId(userId);
         
         if (wallet is null) return Results.Problem("No wallet found");
         

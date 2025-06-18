@@ -1,4 +1,4 @@
-using Application.Interfaces.Repositories;
+using CrossCutting.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

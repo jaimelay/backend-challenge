@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Interfaces.Repositories;
+namespace CrossCutting.Interfaces.Repositories;
 
 public interface IUserRepository
 {

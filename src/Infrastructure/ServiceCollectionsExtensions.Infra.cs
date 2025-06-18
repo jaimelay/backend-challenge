@@ -1,6 +1,6 @@
-using Application.Interfaces.Repositories;
 using CrossCutting.Auth;
 using CrossCutting.Auth.Interfaces;
+using CrossCutting.Interfaces.Repositories;
 using CrossCutting.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,6 +23,7 @@ public static class ServiceCollectionsExtensionsInfra
         services.AddScoped<IJwtProvider, JwtProvider>();
         
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IWalletRepository, WalletRepository>();
         
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("Db")));
         
