@@ -26,11 +26,19 @@ public static class ServiceCollectionsExtensionsInfra
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
         
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("Db")));
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("Db")).NpgSqlEnableLegacyTimestampBehavior());
         
         return services;
     }
 
+    public static DbContextOptionsBuilder NpgSqlEnableLegacyTimestampBehavior(
+        this DbContextOptionsBuilder options,
+        bool isEnabled = true)
+    {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", isEnabled);
+        return options;
+    }
+    
     public static void ApplyMigrations(this IApplicationBuilder app)
     {
         using var scope = app.ApplicationServices.CreateScope();

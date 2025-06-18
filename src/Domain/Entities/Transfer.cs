@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Domain.Entities;
 
 public class Transfer
@@ -8,8 +10,8 @@ public class Transfer
     public decimal Amount { get; private set; }
     public DateTime CreatedAt { get; private set; }
     
-    public virtual Wallet FromWallet { get; private set; }
-    public virtual Wallet ToWallet { get; private set; }
+    [JsonIgnore] public Wallet FromWallet { get; private set; }
+    [JsonIgnore] public Wallet ToWallet { get; private set; }
 
     private Transfer() {}
     

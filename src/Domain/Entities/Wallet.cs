@@ -1,4 +1,4 @@
-using System.Transactions;
+using System.Text.Json.Serialization;
 
 namespace Domain.Entities;
 
@@ -8,8 +8,8 @@ public class Wallet
     public Guid UserId { get; private set; }
     public decimal Balance { get; private set; }
     public User User { get; }
-    public virtual ICollection<Transfer> TransfersSent { get; private set; }
-    public virtual ICollection<Transfer> TransfersReceived { get; private set; }
+    [JsonIgnore] public ICollection<Transfer> TransfersSent { get; private set; }
+    [JsonIgnore] public ICollection<Transfer> TransfersReceived { get; private set; }
 
     public void Deposit(decimal amount)
     {

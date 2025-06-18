@@ -1,9 +1,11 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Application;
 using CrossCutting;
 using CrossCutting.Seeds;
 using desafioBackend.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -63,6 +65,8 @@ builder.Services.AddSwaggerGen(cfg =>
     
     cfg.AddSecurityRequirement(securityRequirement); 
 });
+
+builder.Services.Configure<JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 builder.Services.AddHttpContextAccessor();
 
