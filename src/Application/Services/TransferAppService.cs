@@ -1,16 +1,14 @@
 using Application.Dtos.Requests;
 using Application.Dtos.Responses;
 using Application.Interfaces;
-using CrossCutting;
 using CrossCutting.Auth.Interfaces;
 using CrossCutting.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class TransferAppService(AppDbContext appDbContext, IWalletRepository walletRepository, IJwtProvider jwtProvider) : ITransferAppService
+public class TransferAppService(ITransferRepository transferRepository, IWalletRepository walletRepository, IJwtProvider jwtProvider) : ITransferAppService
 {
     public async Task<IResult> CreateTransfer(CreateTransferRequest request)
     {
@@ -36,9 +34,8 @@ public class TransferAppService(AppDbContext appDbContext, IWalletRepository wal
         var newTransfer = Transfer.Create(walletFromUser.Id, walletToUser.Id, request.Amount);
         
         await walletRepository.UpdateRange([ walletFromUser, walletToUser ]);
-        
-        await appDbContext.Transfers.AddAsync(newTransfer);
-        await appDbContext.SaveChangesAsync();
+
+        await transferRepository.Save(newTransfer);
 
         return Results.Ok();
     }
@@ -52,16 +49,8 @@ public class TransferAppService(AppDbContext appDbContext, IWalletRepository wal
         var wallet = await walletRepository.GetByUserId(userId);
         
         if (wallet is null) return Results.Problem("No wallet found");
-        
-        var query = appDbContext.Transfers.Where(e => e.FromWalletId == wallet.Id || e.ToWalletId == wallet.Id).AsNoTracking();
 
-        if (fromDate.HasValue)
-            query = query.Where(t => t.CreatedAt >= fromDate).AsNoTracking();
-        
-        if (toDate.HasValue)
-            query = query.Where(t => t.CreatedAt <= toDate).AsNoTracking();
-        
-        var transfers = await query.AsNoTracking().ToListAsync();
+        var transfers = await transferRepository.GetAllTransferByWalletIdAndDate(wallet.Id, fromDate, toDate);
         
         return Results.Ok(new GetTransfersResponse
         {

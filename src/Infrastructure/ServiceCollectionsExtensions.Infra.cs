@@ -22,6 +22,7 @@ public static class ServiceCollectionsExtensionsInfra
 
         services.AddScoped<IJwtProvider, JwtProvider>();
         
+        services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
         
